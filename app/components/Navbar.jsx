@@ -2,14 +2,21 @@
 import { Fragment, useState } from 'react'
 import { Popover, Transition } from '@headlessui/react'
 import { HomeIcon, MagnifyingGlassIcon, PencilIcon, PlusCircleIcon, PlusIcon, UserCircleIcon, UserGroupIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
-import Link from 'next/link'
 import LoginModal from './LoginModal'
+import { signOut } from 'firebase/auth';
+import { auth } from "@/firebase/firebaseConfig";
+import { useAuthState } from 'react-firebase-hooks/auth'
+import Link from 'next/link'
 
 export default function Navbar() {
 	const [open, setOpen] = useState(false); //Usestate to handle the Model state.
+	const [user] = useAuthState(auth);
+	const name = user?.email?.split("@")[0];
+	const capitalized = name?.charAt(0)?.toUpperCase() + name?.slice(1);
+
 	return (
 		<>
-			{/* Large screen Top Navbar */}
+			{/* Large screen Navbar */}
 			<header className="bg-white shadow-md z-50">
 				<nav className="mx-auto flex max-w-7xl items-center  py-4 px-4 lg:px-8" aria-label="Global">
 					<div className='justify-between flex w-full items-center text-center'>
@@ -26,8 +33,8 @@ export default function Navbar() {
 							<input className='pl-3 pr-2 w-full outline-none' type="text" placeholder='Search' />
 						</div>
 						{/* User Account Image in Mobile device */}
-						<img onClick={()=>{setOpen(true)}} src='https://chat.openai.com/_next/image?url=https%3A%2F%2Flh3.googleusercontent.com%2Fa%2FAAcHTtfrP64vPbcohE8hWzmlFoEJrcjfUSUsaFcvvus%3Ds96-c&w=48&q=75' className='sm:hidden rounded-full w-8
-                                h-8'/>
+						{user?.photoURL ? <img src={user?.photoURL} className='sm:hidden rounded-full w-8
+                                h-8 mr-3'/> : <p className='mr-2 sm:hidden font-semibold text-blue-600 text-xl'>{capitalized}</p>}
 					</div>
 					{/* Navlinks */}
 					<Popover.Group className="hidden sm:flex">
@@ -81,12 +88,13 @@ export default function Navbar() {
 							MyPosts
 						</div>
 					</Popover.Group>
-					{/* <Popover className="relative px-4 py-1 items-center  hover:rounded-full  text-md font-semibold leading-6 text-gray-500 cursor-pointer hidden lg:flex lg:flex-1 lg:justify-end">
+					{user && <Popover className="relative px-4 py-1 items-center  hover:rounded-full  text-md font-semibold leading-6 text-gray-500 cursor-pointer hidden sm:flex sm
+					:flex-1 lg:justify-end">
 						<Popover.Button className="flex items-center outline-none">
 							<div className='flex items-center'>
-								<img src='https://chat.openai.com/_next/image?url=https%3A%2F%2Flh3.googleusercontent.com%2Fa%2FAAcHTtfrP64vPbcohE8hWzmlFoEJrcjfUSUsaFcvvus%3Ds96-c&w=48&q=75' className='rounded-full w-8
-                                h-8 mr-3'/>
-								<p className='mr-2'>Abdullah</p>
+								{user?.photoURL && <img src={user?.photoURL} className='rounded-full w-8
+                                h-8 mr-3'/>}
+								<p className='mr-2'>{capitalized}</p>
 								<ChevronDownIcon className="h-4 w-4 flex-none text-gray-400 outline-none mt-1.5" aria-hidden="true" />
 							</div>
 						</Popover.Button>
@@ -100,16 +108,16 @@ export default function Navbar() {
 							leaveTo="opacity-0 translate-y-1"
 						>
 							<Popover.Panel className="absolute left-0 top-full z-10 mt-3 w-full max-w-xs overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-gray-900/5">
-								<button className="w-full py-2 px-5 rounded-md hover:bg-gray-50">
+								<button onClick={() => signOut(auth)} className="w-full py-2 px-5 rounded-md hover:bg-gray-50">
 									Logout
 								</button>
 							</Popover.Panel>
 						</Transition>
-					</Popover>  */}
-					<button onClick={() => { setOpen(true) }} className='py-2 px-4 hover:bg-blue-100 hover:rounded-full hover:text-blue-500 text-md font-semibold leading-6 text-gray-500 cursor-pointer hidden sm:flex sm:flex-1 lg:justify-end'>
+					</Popover>}
+					{!user && <button onClick={() => { setOpen(true) }} className='py-2 px-4 hover:bg-blue-100 hover:rounded-full hover:text-blue-500 text-md font-semibold leading-6 text-gray-500 cursor-pointer hidden sm:flex sm:flex-1 lg:justify-end'>
 						<UserCircleIcon className='w-6 h-6 text-blue-400 mr-1' />
 						Login
-					</button>
+					</button>}
 				</nav>
 			</header>
 			{/* Mobile screen Bottom Navbar */}
@@ -135,10 +143,7 @@ export default function Navbar() {
 				</div>
 			</div>
 			{/* Login Modal Component */}
-			<LoginModal
-				open={open}
-				setOpen={setOpen}
-			/>
+			<LoginModal open={open} setOpen={setOpen} />
 		</>
 	)
 }
